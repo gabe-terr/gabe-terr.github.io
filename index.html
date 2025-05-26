@@ -99,7 +99,7 @@
     let passwordChartInstance = null;
 
     function fetchLogs() {
-        fetch('http://45.79.253.66/logs')
+        fetch('https://gabe-terr.mooo.com/logs')
             .then(res => res.json())
             .then(data => {
                 const tbody = document.querySelector("#log-table tbody");
@@ -140,7 +140,7 @@
     }
 
     function loadGraphs() {
-        fetch('http://45.79.253.66/stats')
+        fetch('https://gabe-terr.mooo.com/stats')
             .then(res => res.json())
             .then(data => {
                 // Destroy existing charts if any
