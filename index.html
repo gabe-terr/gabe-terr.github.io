@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>SSH Honeypot Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+    }
+    table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-top: 10px;
+    }
+    th, td {
+        border: 1px solid #aaa;
+        padding: 8px;
+        text-align: left;
+    }
+    #graphs {
+        margin-top: 20px;
+    }
+    .charts-row {
+        display: flex;
+        gap: 40px;
+        margin-bottom: 40px;
+    }
+    canvas {
+        width: 100% !important;
+        height: 300px !important;
+        /* We'll resize container div for better control */
+    }
+    .chart-container {
+        flex: 1;
+        min-width: 0; /* prevent overflow */
+    }
+    .stats-row {
+        display: flex;
+        gap: 40px;
+    }
+    .stat-box {
+        flex: 1;
+        background: #f0f0f0;
+        padding: 20px;
+        text-align: center;
+        font-size: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 0 10px #ccc;
+    }
+    .hidden {
+        display: none;
+    }
+</style>
+</head>
+<body>
+
+<h2>SSH Honeypot Logs for Today</h2>
+<table id="log-table">
+    <thead>
+        <tr>
+            <th>Date/Time</th>
+            <th>IP (redacted)</th>
+            <th>Username</th>
+            <th>Password</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<br />
+<button onclick="toggleGraphs()">Show/Hide Graphs</button>
+
+<div id="graphs" class="hidden">
+    <div class="charts-row">
+        <div class="chart-container">
+            <h3>Most Attempted Usernames</h3>
+            <canvas id="userChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h3>Most Attempted Passwords</h3>
+            <canvas id="passwordChart"></canvas>
+        </div>
+    </div>
+    <div class="stats-row">
+        <div class="stat-box">
+            <h3>Total Attempts</h3>
+            <div id="totalAttempts">0</div>
+        </div>
+        <div class="stat-box">
+            <h3>Total Unique IPs</h3>
+            <div id="totalIPs">0</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let userChartInstance = null;
+    let passwordChartInstance = null;
+
+    function fetchLogs() {
+        fetch('/logs')
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.querySelector("#log-table tbody");
+                tbody.innerHTML = "";
+                data.forEach(entry => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${entry.time}</td>
+                        <td>${entry.ip}</td>
+                        <td>${entry.user}</td>
+                        <td>${entry.password}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            });
+    }
+
+    function toggleGraphs() {
+        const graphsDiv = document.getElementById("graphs");
+        if (graphsDiv.classList.contains("hidden")) {
+            graphsDiv.classList.remove("hidden");
+            loadGraphs();
+        } else {
+            graphsDiv.classList.add("hidden");
+            destroyCharts();
+        }
+    }
+
+    function destroyCharts() {
+        if (userChartInstance) {
+            userChartInstance.destroy();
+            userChartInstance = null;
+        }
+        if (passwordChartInstance) {
+            passwordChartInstance.destroy();
+            passwordChartInstance = null;
+        }
+    }
+
+    function loadGraphs() {
+        fetch('/stats')
+            .then(res => res.json())
+            .then(data => {
+                // Destroy existing charts if any
+                destroyCharts();
+
+                // Set total attempts and unique IPs stats
+                document.getElementById('totalAttempts').textContent = data.total_attempts || 0;
+                document.getElementById('totalIPs').textContent = data.total_unique_ips || 0;
+
+                // Usernames Bar Chart
+                const ctxUser = document.getElementById('userChart').getContext('2d');
+                userChartInstance = new Chart(ctxUser, {
+                    type: 'bar',
+                    data: {
+                        labels: data.users.map(u => u.user),
+                        datasets: [{
+                            label: 'Attempts',
+                            data: data.users.map(u => u.count),
+                            backgroundColor: 'rgba(54, 162, 235, 0.7)'
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true, precision: 0 } }
+                    }
+                });
+
+                // Passwords Bar Chart
+                const ctxPass = document.getElementById('passwordChart').getContext('2d');
+                passwordChartInstance = new Chart(ctxPass, {
+                    type: 'bar',
+                    data: {
+                        labels: data.passwords.map(p => p.password),
+                        datasets: [{
+                            label: 'Attempts',
+                            data: data.passwords.map(p => p.count),
+                            backgroundColor: 'rgba(255, 159, 64, 0.7)'
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true, precision: 0 } }
+                    }
+                });
+            });
+    }
+
+    window.onload = fetchLogs;
+</script>
+
+</body>
+</html>
