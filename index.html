@@ -8,15 +8,28 @@
     body {
         font-family: Arial, sans-serif;
     }
+    .table-container {
+        max-height: 400px; /* roughly enough for ~10 rows */
+        overflow-y: auto;
+        border: 1px solid #aaa;
+        margin-top: 10px;
+    }
     table {
         border-collapse: collapse;
         width: 100%;
-        margin-top: 10px;
+        /* remove margin-top here since container has it */
     }
     th, td {
         border: 1px solid #aaa;
         padding: 8px;
         text-align: left;
+    }
+    /* Sticky header */
+    #log-table thead tr {
+        position: sticky;
+        top: 0;
+        background-color: #fff;
+        z-index: 2;
     }
     #graphs {
         margin-top: 20px;
@@ -56,17 +69,20 @@
 <body>
 
 <h2>SSH Honeypot Logs for Today</h2>
-<table id="log-table">
-    <thead>
-        <tr>
-            <th>Date/Time</th>
-            <th>IP (redacted)</th>
-            <th>Username</th>
-            <th>Password</th>
-        </tr>
-    </thead>
-    <tbody></tbody>
-</table>
+
+<div class="table-container">
+  <table id="log-table">
+      <thead>
+          <tr>
+              <th>Date/Time</th>
+              <th>IP (redacted)</th>
+              <th>Username</th>
+              <th>Password</th>
+          </tr>
+      </thead>
+      <tbody></tbody>
+  </table>
+</div>
 
 <br />
 <button onclick="toggleGraphs()">Show/Hide Graphs</button>
@@ -148,7 +164,7 @@
 
                 // Set total attempts and unique IPs stats
                 document.getElementById('totalAttempts').textContent = data.total_attempts || 0;
-                document.getElementById('totalIPs').textContent = data.total_unique_ips || 0;
+                document.getElementById('totalIPs').textContent = data.total_ips || 0;
 
                 // Usernames Bar Chart
                 const ctxUser = document.getElementById('userChart').getContext('2d');
