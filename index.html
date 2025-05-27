@@ -156,53 +156,55 @@
     }
 
     function loadGraphs() {
-        fetch('https://gabe-terr.mooo.com/stats')
-            .then(res => res.json())
-            .then(data => {
-                // Destroy existing charts if any
-                destroyCharts();
+    fetch('https://gabe-terr.mooo.com/stats')
+        .then(res => res.json())
+        .then(data => {
+            console.log("Stats received:", data); // Optional debug line
 
-                // Set total attempts and unique IPs stats
-                document.getElementById('totalAttempts').textContent = data.total_attempts || 0;
-                document.getElementById('totalIPs').textContent = data.total_ips || 0;
+            // Destroy existing charts if any
+            destroyCharts();
 
-                // Usernames Bar Chart
-                const ctxUser = document.getElementById('userChart').getContext('2d');
-                userChartInstance = new Chart(ctxUser, {
-                    type: 'bar',
-                    data: {
-                        labels: data.users.map(u => u.user),
-                        datasets: [{
-                            label: 'Attempts',
-                            data: data.users.map(u => u.count),
-                            backgroundColor: 'rgba(54, 162, 235, 0.7)'
-                        }]
-                    },
-                    options: {
-                        plugins: { legend: { display: false } },
-                        scales: { y: { beginAtZero: true, precision: 0 } }
-                    }
-                });
+            // Set total attempts and unique IPs stats
+            document.getElementById('totalAttempts').textContent = data.total_attempts || 0;
+            document.getElementById('totalIPs').textContent = data.total_unique_ips || 0; // ✅ fixed here
 
-                // Passwords Bar Chart
-                const ctxPass = document.getElementById('passwordChart').getContext('2d');
-                passwordChartInstance = new Chart(ctxPass, {
-                    type: 'bar',
-                    data: {
-                        labels: data.passwords.map(p => p.password),
-                        datasets: [{
-                            label: 'Attempts',
-                            data: data.passwords.map(p => p.count),
-                            backgroundColor: 'rgba(255, 159, 64, 0.7)'
-                        }]
-                    },
-                    options: {
-                        plugins: { legend: { display: false } },
-                        scales: { y: { beginAtZero: true, precision: 0 } }
-                    }
-                });
+            // Usernames Bar Chart
+            const ctxUser = document.getElementById('userChart').getContext('2d');
+            userChartInstance = new Chart(ctxUser, {
+                type: 'bar',
+                data: {
+                    labels: data.users.map(u => u.user),
+                    datasets: [{
+                        label: 'Attempts',
+                        data: data.users.map(u => u.count),
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)'
+                    }]
+                },
+                options: {
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, precision: 0 } }
+                }
             });
-    }
+
+            // Passwords Bar Chart
+            const ctxPass = document.getElementById('passwordChart').getContext('2d');
+            passwordChartInstance = new Chart(ctxPass, {
+                type: 'bar',
+                data: {
+                    labels: data.passwords.map(p => p.password),
+                    datasets: [{
+                        label: 'Attempts',
+                        data: data.passwords.map(p => p.count),
+                        backgroundColor: 'rgba(255, 159, 64, 0.7)'
+                    }]
+                },
+                options: {
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, precision: 0 } }
+                }
+            });
+        });
+}
 
     window.onload = fetchLogs;
 </script>
