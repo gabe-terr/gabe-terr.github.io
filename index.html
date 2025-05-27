@@ -114,24 +114,28 @@
     let userChartInstance = null;
     let passwordChartInstance = null;
 
-    function fetchLogs() {
-        fetch('https://gabe-terr.mooo.com/logs')
-            .then(res => res.json())
-            .then(data => {
-                const tbody = document.querySelector("#log-table tbody");
-                tbody.innerHTML = "";
-                data.forEach(entry => {
-                    const row = document.createElement("tr");
-                    row.innerHTML = `
-                        <td>${entry.time}</td>
-                        <td>${entry.ip}</td>
-                        <td>${entry.user}</td>
-                        <td>${entry.password}</td>
-                    `;
-                    tbody.appendChild(row);
-                });
+   function fetchLogs() {
+    fetch('https://gabe-terr.mooo.com/logs')
+        .then(res => res.json())
+        .then(data => {
+            const tbody = document.querySelector("#log-table tbody");
+            tbody.innerHTML = "";
+
+            // Sort data by time descending
+            data.sort((a, b) => new Date(b.time) - new Date(a.time));
+
+            data.forEach(entry => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${entry.time}</td>
+                    <td>${entry.ip}</td>
+                    <td>${entry.user}</td>
+                    <td>${entry.password}</td>
+                `;
+                tbody.appendChild(row);
             });
-    }
+        });
+}
 
     function toggleGraphs() {
         const graphsDiv = document.getElementById("graphs");
